@@ -10,11 +10,17 @@ import {
   Title,
 } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  Suspense,
+} from "react";
 import io from "socket.io-client";
 const socket = io("http://localhost:3001");
 
-export default function Finder() {
+function FinderComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const game = searchParams.get("game");
@@ -34,7 +40,6 @@ export default function Finder() {
     joinRoom();
   }, [joinRoom]);
 
-  // Emit message to server
   const sendMessage = useCallback(
     (newMessage: string) => {
       socket.emit("send_message", { message: newMessage, room });
@@ -42,7 +47,6 @@ export default function Finder() {
     [room]
   );
 
-  // Handle receiving messages from server
   useEffect(() => {
     const handleReceiveMessage = (data: { message: string; room: string }) => {
       if (data.room === room) {
@@ -59,7 +63,6 @@ export default function Finder() {
     };
   }, [room]);
 
-  // Handle form submission
   const handleMessageSubmit = useCallback(
     (e: any) => {
       e.preventDefault();
@@ -76,7 +79,6 @@ export default function Finder() {
     [sendMessage]
   );
 
-  // Auto scroll down
   useEffect(() => {
     viewport.current!.scrollTo({
       top: viewport.current!.scrollHeight,
@@ -147,5 +149,15 @@ export default function Finder() {
         </form>
       </Flex>
     </>
+  );
+}
+
+const Loading = () => <div>Loading...</div>;
+
+export default function Finder() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <FinderComponent />
+    </Suspense>
   );
 }
